@@ -1,5 +1,6 @@
 import Browser
-import Html exposing (Html)
+import Html exposing ( Html, text, p )
+import Html.Events exposing ( onClick )
 
 main =
   Browser.sandbox
@@ -19,16 +20,18 @@ type alias Model =
   String
 
 
-type alias Msg = 
-  String
+type Msg = 
+  Capitalize
 
 -- UPDATE
 update : Msg -> Model -> Model
 update msg model =
-  model
+  case msg of
+    Capitalize ->
+      String.toUpper model
 
 
 -- VIEW
-view : Model -> Html.Html Model
+view : Model -> Html Msg
 view model =
-  Html.text "Hello World"
+  p [ onClick Capitalize ] [ text model ]
