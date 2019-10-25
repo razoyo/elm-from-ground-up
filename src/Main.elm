@@ -55,10 +55,7 @@ update msg model =
 
 
     Reset ->
-      { model | first = initialModel.first
-      , second = initialModel.second
-      , third = "" }
-
+      initialModel
 
     AddNew text ->
       { model | third = text }
