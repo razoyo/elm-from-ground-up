@@ -1,7 +1,7 @@
 import Browser
-import Html exposing ( Html, text, p, button, div, input )
+import Html exposing ( Html, text, p, button, div, input, span )
 import Html.Events exposing ( onClick, onInput )
-import Html.Attributes exposing ( value )
+import Html.Attributes exposing ( value, style )
 
 main =
   Browser.sandbox
@@ -33,6 +33,7 @@ type Msg = Capitalize String
   | Reset
   | UpdateNew String
   | AddNew
+  | Delete String
 
 
 
@@ -55,6 +56,9 @@ update msg model =
       , newItem = ""
       }
 
+    Delete item ->
+      { model | items = List.filter (\x-> item /= x ) model.items }
+
 
 capitalizeMatchedItems : String -> String -> String
 capitalizeMatchedItems choice match =
@@ -67,13 +71,18 @@ capitalizeMatchedItems choice match =
 -- VIEW
 view : Model -> Html Msg
 view model =
-  div [] [ div [] ( List.map (\x -> 
-                    p [ onClick ( Capitalize x ) ] [ text x ] ) 
-                    model.items 
-                  )
-    , p [] [ input [ value model.newItem
-                   , onInput UpdateNew ] []
-           , button [ onClick AddNew ] [ text "submit" ]
-           ] 
+  div [] [ 
+    div [] ( List.map 
+             (\x -> p [] [ span [ onClick ( Capitalize x ) ] [ text x ]
+                         , span [ style "margin-left" "10px"
+                                , style "color" "red"
+                                , style "font-family" "sans-serif"
+                                , onClick ( Delete x ) ] [ text "x" ] 
+                         ]
+             ) model.items
+           )
+           , p [] [ input [ value model.newItem, onInput UpdateNew ] []
+                  , button [ style "margin-left" "10px", onClick AddNew ] [ text "submit" ]
+                  ] 
     , button [ onClick Reset ] [ text "undo" ]
   ]
