@@ -40,7 +40,6 @@ type Msg = Capitalize String
 update : Msg -> Model -> Model
 update msg model =
   case msg of
-
     Capitalize item ->
       { model | items = List.map (\x -> capitalizeMatchedItems x item )  model.items }
 
@@ -62,7 +61,7 @@ capitalizeMatchedItems choice match =
     String.toUpper choice
   else
     choice
-
+    
 
 -- VIEW
 view : Model -> Html Msg
