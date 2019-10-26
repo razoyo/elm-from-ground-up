@@ -1,6 +1,7 @@
 import Browser
-import Html exposing ( Html, text, p, button, div )
-import Html.Events exposing ( onClick )
+import Html exposing ( Html, text, p, button, div, input )
+import Html.Events exposing ( onClick, onInput )
+import Html.Attributes exposing ( value )
 
 main =
   Browser.sandbox
@@ -10,53 +11,68 @@ main =
     }
 
 
+initialModel =
+  { items = [ "Hello World", "Here I Am" ]
+  , newItem = ""
+  }
+
+
 init : Model
 init = 
-  ( "Hello World", "Here I Am" )
+  initialModel
 
 
 -- MODEL
 type alias Model =
-  ( String, String )
+  { items : List String
+  , newItem : String 
+  }
 
 
-type Msg = Capitalize Int
-  | Decapitalize
+type Msg = Capitalize String
+  | Reset
+  | UpdateNew String
+  | AddNew
+
+
 
 -- UPDATE
 update : Msg -> Model -> Model
 update msg model =
   case msg of
-    Capitalize position ->
-      let
-          ( first, second ) = model
-      in
+    Capitalize item ->
+      { model | items = List.map (\x -> capitalizeMatchedItems x item )  model.items }
 
-      case position of
-        1 -> 
-          ( String.toUpper first, second )
+    Reset ->
+      initialModel
 
-        _ ->
-          ( first, String.toUpper second )
+    UpdateNew item ->
+      { model | newItem = item }
+
+    AddNew ->
+      { model | items = model.items ++ [ model.newItem ]
+      , newItem = ""
+      }
 
 
-    Decapitalize ->
-      let
-          ( first, second ) = model
-
-          newModel = ( String.toLower first, String.toLower second )
-      in
-         newModel
-
+capitalizeMatchedItems : String -> String -> String
+capitalizeMatchedItems choice match =
+  if choice == match then 
+    String.toUpper choice
+  else
+    choice
+    
 
 -- VIEW
 view : Model -> Html Msg
 view model =
-  let 
-      ( first, second ) = model
-  in
-  div [] [
-    p [ onClick ( Capitalize 1 ) ] [ text first ]
-    , p [ onClick ( Capitalize 2 ) ] [ text second ]
-    , button [ onClick Decapitalize ] [ text "undo" ]
+  div [] [ div [] ( List.map (\x -> 
+                    p [ onClick ( Capitalize x ) ] [ text x ] ) 
+                    model.items 
+                  )
+    , p [] [ input [ value model.newItem
+                   , onInput UpdateNew ] []
+           , button [ onClick AddNew ] [ text "submit" ]
+           ] 
+    , button [ onClick Reset ] [ text "undo" ]
   ]
