@@ -1,6 +1,6 @@
 import Browser
-import Html exposing ( Html, text, p, button, div, input, span )
-import Html.Events exposing ( onClick, onInput )
+import Html exposing ( Html, text, p, button, div, input, span, form )
+import Html.Events exposing ( onClick, onInput, onSubmit )
 import Html.Attributes exposing ( value, style )
 
 main =
@@ -52,13 +52,17 @@ update msg model =
       { model | newItem = item }
 
     AddNew ->
-      { model | items = model.items ++ [ model.newItem ]
-      , newItem = ""
-      }
+      addNewItem model
 
     Delete item ->
       { model | items = List.filter (\x-> item /= x ) model.items }
 
+
+addNewItem : Model -> Model
+addNewItem model =
+  { model | items = model.items ++ [ model.newItem ]
+  , newItem = ""
+  }
 
 capitalizeMatchedItems : String -> String -> String
 capitalizeMatchedItems choice match =
@@ -81,8 +85,8 @@ view model =
                          ]
              ) model.items
            )
-           , p [] [ input [ value model.newItem, onInput UpdateNew ] []
-                  , button [ style "margin-left" "10px", onClick AddNew ] [ text "submit" ]
+           , form [ onSubmit AddNew ] [ input [ value model.newItem, onInput UpdateNew ] []
+                  , button [ style "margin-left" "10px" ] [ text "submit" ]
                   ] 
-    , button [ onClick Reset ] [ text "undo" ]
+    , button [ onClick Reset ] [ text "reset" ]
   ]
