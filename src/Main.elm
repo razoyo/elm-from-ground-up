@@ -1,5 +1,5 @@
 import Browser
-import Html exposing ( Html, text, p, button, div, input, span, form )
+import Html exposing ( Html, text, p, button, div, input, span, form, a )
 import Html.Events exposing ( onClick, onInput, onSubmit )
 import Html.Attributes exposing ( value, style )
 
@@ -13,6 +13,7 @@ main =
 
 initialModel =
   { items = [ "Hello World", "Here I Am" ]
+  , sortOrder = Asc
   , newItem = ""
   }
 
@@ -25,7 +26,8 @@ init =
 -- MODEL
 type alias Model =
   { items : List String
-  , newItem : String 
+  , sortOrder : SortOrder
+  , newItem : String
   }
 
 
@@ -34,6 +36,10 @@ type Msg = Capitalize String
   | UpdateNew String
   | AddNew
   | Delete String
+  | Sort
+
+
+type SortOrder = Asc | Desc
 
 
 
@@ -57,6 +63,27 @@ update msg model =
     Delete item ->
       { model | items = List.filter (\x-> item /= x ) model.items }
 
+    Sort ->
+      let
+        newOrder = 
+          case model.sortOrder of
+            Asc -> Desc
+            Desc -> Asc
+
+        itemListSorted = List.sort model.items
+
+        newList = 
+          case newOrder of
+            Asc ->
+              itemListSorted
+
+            Desc ->
+              List.reverse itemListSorted
+      in
+
+        { model | items = newList
+        , sortOrder = newOrder
+        }
 
 addNewItem : Model -> Model
 addNewItem model =
@@ -75,8 +102,8 @@ capitalizeMatchedItems choice match =
 -- VIEW
 view : Model -> Html Msg
 view model =
-  div [] [ 
-    div [] ( List.map 
+  div [] [ div [] [ button [ onClick Sort ] [ text "sort" ] ]
+    , div [] ( List.map 
              (\x -> p [] [ span [ onClick ( Capitalize x ) ] [ text x ]
                          , span [ style "margin-left" "10px"
                                 , style "color" "red"
