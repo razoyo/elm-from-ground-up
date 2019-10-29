@@ -13,7 +13,6 @@ main =
 
 initialModel =
   { items = [ "Hello World", "Here I Am" ]
-  , sortOrder = Asc
   , newItem = ""
   }
 
@@ -26,7 +25,6 @@ init =
 -- MODEL
 type alias Model =
   { items : List String
-  , sortOrder : SortOrder
   , newItem : String
   }
 
@@ -36,10 +34,10 @@ type Msg = Capitalize String
   | UpdateNew String
   | AddNew
   | Delete String
-  | Sort
+  | Sort SortOperation
 
 
-type SortOrder = Asc | Desc
+type SortOperation = Asc | Desc | AscLength | DescLength
 
 
 
@@ -63,27 +61,32 @@ update msg model =
     Delete item ->
       { model | items = List.filter (\x-> item /= x ) model.items }
 
-    Sort ->
+    Sort operation ->
       let
-        newOrder = 
-          case model.sortOrder of
-            Asc -> Desc
-            Desc -> Asc
-
         itemListSorted = List.sort model.items
 
+        itemListSortedByLength =
+          model.items
+            |> List.map (\x -> ( String.length x, x ) )
+            |> List.sort
+            |> List.map (\x -> Tuple.second x)
+
         newList = 
-          case newOrder of
+          case operation of
             Asc ->
               itemListSorted
 
             Desc ->
               List.reverse itemListSorted
+
+            AscLength ->
+              itemListSortedByLength
+
+            DescLength ->
+              List.reverse itemListSortedByLength
       in
 
-        { model | items = newList
-        , sortOrder = newOrder
-        }
+        { model | items = newList }
 
 addNewItem : Model -> Model
 addNewItem model =
@@ -102,7 +105,12 @@ capitalizeMatchedItems choice match =
 -- VIEW
 view : Model -> Html Msg
 view model =
-  div [] [ div [] [ button [ onClick Sort ] [ text "sort" ] ]
+  div [] [ div [] [ span [] [ text "sort operation : " ]
+         , button [ onClick ( Sort Asc ) ] [ text "a - z" ] 
+         , button [ onClick ( Sort Desc ) ] [ text "z - a" ] 
+         , button [ onClick ( Sort AscLength ) ] [ text "short - long" ] 
+         , button [ onClick ( Sort DescLength ) ] [ text "long - short" ] 
+         ]
     , div [] ( List.map 
              (\x -> p [] [ span [ onClick ( Capitalize x ) ] [ text x ]
                          , span [ style "margin-left" "10px"
