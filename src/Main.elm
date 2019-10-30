@@ -1,7 +1,8 @@
 import Browser
-import Html exposing ( Html, text, p, button, div, input, span, form, a )
+import Html exposing ( Html, text, p, button, div, input, span, form, h1 )
 import Html.Events exposing ( onClick, onInput, onSubmit )
 import Html.Attributes exposing ( value, style )
+
 
 main =
   Browser.sandbox
@@ -20,6 +21,7 @@ initialModel =
 init : Model
 init = 
   initialModel
+
 
 
 -- MODEL
@@ -88,11 +90,13 @@ update msg model =
 
         { model | items = newList }
 
+
 addNewItem : Model -> Model
 addNewItem model =
   { model | items = model.items ++ [ model.newItem ]
   , newItem = ""
   }
+
 
 capitalizeMatchedItems : String -> String -> String
 capitalizeMatchedItems choice match =
@@ -102,15 +106,17 @@ capitalizeMatchedItems choice match =
     choice
 
 
+
 -- VIEW
 view : Model -> Html Msg
 view model =
-  div [] [ div [] [ span [] [ text "sort operation : " ]
-         , button [ onClick ( Sort Asc ) ] [ text "a - z" ] 
-         , button [ onClick ( Sort Desc ) ] [ text "z - a" ] 
-         , button [ onClick ( Sort AscLength ) ] [ text "short - long" ] 
-         , button [ onClick ( Sort DescLength ) ] [ text "long - short" ] 
-         ]
+  div [] [ h1 [] [ text ( headList model.items ) ] 
+         , div [] [ span [] [ text "sort operation : " ]
+           , button [ onClick ( Sort Asc ) ] [ text "a - z" ] 
+           , button [ onClick ( Sort Desc ) ] [ text "z - a" ] 
+           , button [ onClick ( Sort AscLength ) ] [ text "short - long" ] 
+           , button [ onClick ( Sort DescLength ) ] [ text "long - short" ] 
+           ]
     , div [] ( List.map 
              (\x -> p [] [ span [ onClick ( Capitalize x ) ] [ text x ]
                          , span [ style "margin-left" "10px"
@@ -125,3 +131,17 @@ view model =
                   ] 
     , button [ onClick Reset ] [ text "reset" ]
   ]
+
+
+headList : List String -> String
+headList items =
+  let
+    item = List.head items -- this will produce a Maybe condition since a list may be empty
+  in
+
+  case item of 
+    Just firstItem -> -- if the list is not empty
+      "List starting with \"" ++ firstItem ++ "\""
+
+    Nothing -> -- if the list is empty
+      "Empty List"
