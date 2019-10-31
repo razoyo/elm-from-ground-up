@@ -1,19 +1,9 @@
-# elm-from-ground-up
+# 3 Add Another Message
+In this lab/branch we've added another message to the queue.
 
-Welcome to Razoyo's Elm learning lab. The approach of this lab is to start with the most basic possible Elm hello world and build to use more and more features of the language progressively.
-
-The idea is that you can start playing with a limited set of features and gradually add more data types and functionality as you progress.
-
-## How to use the lab
-
-The lab is organized in numbered, step-wise versions. We recommend cloning the repository onto your development environment and check out each numbered branch successively.
-
-To run the demo simply run `elm reactor` from the project root and navigate to src/Main.elm.
-
-## Contributing
-
-Feel free to submit pull requests. We will attempt to review and either comment on them or merge them in a relatively timely manner. The repository is managed by volunteers with day jobs, so, please be patient.
-
-To report bugs or request feature enhancements, just open up an issue.
+To accommodate this we had to do the following:
+* Change the model to a Tuple type
+* Add a 'payload' to the CAPITALIZE message to tell which element of the tuple we are going to modify
+* Use pattern matching to make reading the view easier
 
 Happy Elming!
