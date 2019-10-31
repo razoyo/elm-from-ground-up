@@ -1,5 +1,8 @@
-# elm-from-ground-up
+# 1 Just View
 
+This branch of the lab is about as basic as they come. My goal was to create a "Hello World" application that does just one thing: display the words "Hello World". The model is a simple string and there are no HTML elements, just text.
+
+#Background
 Welcome to Razoyo's Elm learning lab. The approach of this lab is to start with the most basic possible Elm hello world and build to use more and more features of the language progressively.
 
 The idea is that you can start playing with a limited set of features and gradually add more data types and functionality as you progress.
