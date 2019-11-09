@@ -93,7 +93,7 @@ findAndCapitalize key items =
 
   case item of
     Just value ->
-      Dict.insert key { item = value.item, length = String.length value.item } items
+      Dict.insert key { item = String.toUpper value.item, length = String.length value.item } items
 
     Nothing -> -- if you can't find it - which shouldn't happen - just return the old list
       items
