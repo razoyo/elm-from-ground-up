@@ -2,6 +2,7 @@ import Browser
 import Html exposing ( Html, text, p, button, div, input, span, form, h1 )
 import Html.Events exposing ( onClick, onInput, onSubmit )
 import Html.Attributes exposing ( value, style )
+import Dict
 
 
 main =
@@ -13,8 +14,11 @@ main =
 
 
 initialModel =
-  { items = [ "Hello World", "Here I Am" ]
+  { items = Dict.fromList [ ( 1, { item = "Hello World", length = 11 } )
+    , ( 2, { item = "Here I Am", length = 9} ) 
+    ]
   , newItem = ""
+  , sortBy = Order
   }
 
 
@@ -26,20 +30,27 @@ init =
 
 -- MODEL
 type alias Model =
-  { items : List String
+  { items : Dict.Dict Int Item
   , newItem : String
+  , sortBy : SortOperation
   }
 
 
-type Msg = Capitalize String
+type Msg = Capitalize Int
   | Reset
   | UpdateNew String
   | AddNew
-  | Delete String
+  | Delete Int
   | Sort SortOperation
 
 
-type SortOperation = Asc | Desc | AscLength | DescLength
+type SortOperation = Order | Asc | Desc | AscLength | DescLength
+
+
+type alias Item = 
+  { item : String
+  , length : Int
+  }
 
 
 
@@ -48,8 +59,8 @@ update : Msg -> Model -> Model
 update msg model =
   case msg of
 
-    Capitalize item ->
-      { model | items = List.map (\x -> capitalizeMatchedItems x item )  model.items }
+    Capitalize key ->
+      { model | items = ( findAndCapitalize key model.items ) }
 
     Reset ->
       initialModel
@@ -61,50 +72,31 @@ update msg model =
       addNewItem model
 
     Delete item ->
-      { model | items = List.filter (\x-> item /= x ) model.items }
+      { model | items = ( Dict.remove item model.items ) }
 
     Sort operation ->
-      let
-        itemListSorted = List.sort model.items
-
-        itemListSortedByLength =
-          model.items
-            |> List.map (\x -> ( String.length x, x ) )
-            |> List.sort
-            |> List.map (\x -> Tuple.second x)
-
-        newList = 
-          case operation of
-            Asc ->
-              itemListSorted
-
-            Desc ->
-              List.reverse itemListSorted
-
-            AscLength ->
-              itemListSortedByLength
-
-            DescLength ->
-              List.reverse itemListSortedByLength
-      in
-
-        { model | items = newList }
+      { model | sortBy = operation }
 
 
 addNewItem : Model -> Model
 addNewItem model =
-  { model | items = model.items ++ [ model.newItem ]
+  { model | items = Dict.insert ( ( Dict.keys model.items |> List.maximum |> Maybe.withDefault 0 ) + 1 ) ( Item model.newItem ( String.length model.newItem ) ) model.items
   , newItem = ""
   }
 
 
-capitalizeMatchedItems : String -> String -> String
-capitalizeMatchedItems choice match =
-  if choice == match then 
-    String.toUpper choice
-  else
-    choice
+findAndCapitalize : Int -> Dict.Dict Int Item -> Dict.Dict Int Item
+findAndCapitalize key items =
+  let
+    item = Dict.get key items
+  in
 
+  case item of
+    Just value ->
+      Dict.insert key { item = value.item, length = String.length value.item } items
+
+    Nothing -> -- if you can't find it - which shouldn't happen - just return the old list
+      items
 
 
 -- VIEW
@@ -112,20 +104,13 @@ view : Model -> Html Msg
 view model =
   div [] [ h1 [] [ text ( headList model.items ) ] 
          , div [] [ span [] [ text "sort operation : " ]
+           , button [ onClick ( Sort Order ) ] [ text "order" ] 
            , button [ onClick ( Sort Asc ) ] [ text "a - z" ] 
            , button [ onClick ( Sort Desc ) ] [ text "z - a" ] 
            , button [ onClick ( Sort AscLength ) ] [ text "short - long" ] 
            , button [ onClick ( Sort DescLength ) ] [ text "long - short" ] 
            ]
-    , div [] ( List.map 
-             (\x -> p [] [ span [ onClick ( Capitalize x ) ] [ text x ]
-                         , span [ style "margin-left" "10px"
-                                , style "color" "red"
-                                , style "font-family" "sans-serif"
-                                , onClick ( Delete x ) ] [ text "x" ] 
-                         ]
-             ) model.items
-           )
+         , div [] ( sortedList model.items model.sortBy )
            , form [ onSubmit AddNew ] [ input [ value model.newItem, onInput UpdateNew ] []
                   , button [ style "margin-left" "10px" ] [ text "submit" ]
                   ] 
@@ -133,15 +118,71 @@ view model =
   ]
 
 
-headList : List String -> String
+headList : Dict.Dict Int Item -> String
 headList items =
   let
-    item = List.head items -- this will produce a Maybe condition since a list may be empty
+    item = items
+           |> Dict.toList
+           |> List.head -- this will produce a Maybe condition since a list may be empty
   in
 
   case item of 
-    Just firstItem -> -- if the list is not empty
+    Just data -> -- if the list is not empty
+      let
+        ( k , v ) = data
+        firstItem = v.item
+      in
       "List starting with \"" ++ firstItem ++ "\""
 
     Nothing -> -- if the list is empty
       "Empty List"
+
+
+sortedList : Dict.Dict Int Item -> SortOperation -> List ( Html Msg )
+sortedList items sortBy =
+
+  let
+    itemList =
+      items
+      |> Dict.map itemElement
+      |> Dict.values
+
+    itemElement k v =
+      { element = p [] [ span [ onClick ( Capitalize k ) ] [ text v.item ]
+             , span [ style "margin-left" "10px"
+               , style "color" "red"
+               , style "font-family" "sans-serif"
+               , onClick ( Delete k ) 
+             ] [ text "x" ] 
+           ]
+      , item = v.item
+      , length = v.length }
+  in
+
+  case sortBy of
+    Order ->
+      itemList
+      |> List.map .element
+
+    Asc ->
+      itemList
+      |> List.sortBy .item
+      |> List.map .element
+
+    Desc ->
+      itemList
+      |> List.sortBy .item
+      |> List.map .element
+      |> List.reverse
+
+    AscLength ->
+      itemList
+      |> List.sortBy .length
+      |> List.map .element
+
+    DescLength ->
+      itemList
+      |> List.sortBy .length
+      |> List.map .element
+      |> List.reverse
+
