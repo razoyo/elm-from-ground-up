@@ -14,16 +14,28 @@ main =
 
 
 initialModel =
-  { items = Dict.fromList [ ( 1, { item = "Hello World", length = 11 } )
-    , ( 2, { item = "Here I Am", length = 9} ) 
-    ]
+  { items = Dict.fromList [ ( 1, Item "Hello World" Original False 11 )
+                          , ( 2, Item "Here I Am" Original False 9 ) 
+                          ]
   , newItem = ""
   , sortBy = Order
   }
 
 
+emptyItem =
+  Item "N/A" Original False 0
+
+
+newKey : Dict.Dict Int Item -> Int
+newKey items =
+  Dict.keys items 
+  |> List.maximum 
+  |> Maybe.withDefault 0 
+  |> (\x -> x + 1)
+
+
 init : Model
-init = 
+init =
   initialModel
 
 
@@ -36,19 +48,27 @@ type alias Model =
   }
 
 
-type Msg = Capitalize Int
+type Msg = ToggleCase Int
   | Reset
   | UpdateNew String
   | AddNew
   | Delete Int
   | Sort SortOperation
+  | EditItem Int
+  | UpdateItem Int Item String
+  | StopEdit
 
 
 type SortOperation = Order | Asc | Desc | AscLength | DescLength
 
 
+type DisplayStatus = Original | Capitalized
+
+
 type alias Item = 
   { item : String
+  , displayStatus : DisplayStatus
+  , editing : Bool
   , length : Int
   }
 
@@ -59,8 +79,19 @@ update : Msg -> Model -> Model
 update msg model =
   case msg of
 
-    Capitalize key ->
-      { model | items = ( findAndCapitalize key model.items ) }
+    ToggleCase key ->
+      let
+        newStatus currentStatus = 
+          case currentStatus of
+            Capitalized -> Original
+            Original -> Capitalized
+
+        updatedItem = Dict.get key model.items
+                      |> Maybe.withDefault emptyItem
+                      |> (\x -> Item x.item (newStatus x.displayStatus) x.editing x.length)
+      in
+
+      { model | items = Dict.insert key updatedItem model.items }
 
     Reset ->
       initialModel
@@ -77,26 +108,32 @@ update msg model =
     Sort operation ->
       { model | sortBy = operation }
 
+    EditItem key ->
+      let
+        resetItems items = Dict.map (\k v -> { v | editing = False } ) items
+
+        updatedItem = Dict.get key model.items
+                      |> Maybe.withDefault emptyItem
+                      |> (\x -> Item x.item x.displayStatus (not x.editing) x.length)
+      in
+
+      { model | items = Dict.insert key updatedItem (resetItems model.items) }
+
+    UpdateItem key item newItem ->
+      { model | items = Dict.insert key { item | item = newItem } model.items }
+
+    StopEdit ->
+      { model | items = Dict.map (\k v -> Item v.item v.displayStatus False v.length ) model.items }
 
 addNewItem : Model -> Model
 addNewItem model =
-  { model | items = Dict.insert ( ( Dict.keys model.items |> List.maximum |> Maybe.withDefault 0 ) + 1 ) ( Item model.newItem ( String.length model.newItem ) ) model.items
+  let
+    newItem = model.newItem
+    items = model.items
+  in
+  { model | items = Dict.insert ( newKey items ) ( Item newItem Original False ( String.length newItem ) ) items
   , newItem = ""
   }
-
-
-findAndCapitalize : Int -> Dict.Dict Int Item -> Dict.Dict Int Item
-findAndCapitalize key items =
-  let
-    item = Dict.get key items
-  in
-
-  case item of
-    Just value ->
-      Dict.insert key { item = String.toUpper value.item, length = String.length value.item } items
-
-    Nothing -> -- if you can't find it - which shouldn't happen - just return the old list
-      items
 
 
 -- VIEW
@@ -148,7 +185,14 @@ sortedList items sortBy =
       |> Dict.values
 
     itemElement k v =
-      { element = p [] [ span [ onClick ( Capitalize k ) ] [ text v.item ]
+      { element = p [] [ if v.editing == False then
+               span [ onClick ( ToggleCase k ) ] [ text ( applyDisplayMode v ) ]
+             else
+               input [ value v.item, onInput ( UpdateItem k v ) ] []
+             , if v.editing == False then
+                  button [ onClick ( EditItem k ) ] [ text "edit" ]
+               else
+                  button [ onClick ( StopEdit ) ] [ text "save" ]
              , span [ style "margin-left" "10px"
                , style "color" "red"
                , style "font-family" "sans-serif"
@@ -186,3 +230,12 @@ sortedList items sortBy =
       |> List.map .element
       |> List.reverse
 
+
+applyDisplayMode : Item -> String
+applyDisplayMode item =
+  case item.displayStatus of
+    Capitalized ->
+      String.toUpper item.item
+
+    _ ->
+      item.item
