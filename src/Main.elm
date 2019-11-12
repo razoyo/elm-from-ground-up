@@ -185,20 +185,28 @@ sortedList items sortBy =
       |> Dict.values
 
     itemElement k v =
-      { element = p [] [ if v.editing == False then
-               span [ onClick ( ToggleCase k ) ] [ text ( applyDisplayMode v ) ]
-             else
-               input [ value v.item, onInput ( UpdateItem k v ) ] []
-             , if v.editing == False then
-                  button [ onClick ( EditItem k ) ] [ text "edit" ]
-               else
-                  button [ onClick ( StopEdit ) ] [ text "save" ]
-             , span [ style "margin-left" "10px"
+      let
+        deleteButton =
+          span [ style "margin-left" "10px"
                , style "color" "red"
                , style "font-family" "sans-serif"
                , onClick ( Delete k ) 
              ] [ text "x" ] 
-           ]
+      in
+      { element = 
+          div [] [ if v.editing == False then
+            div [] [
+               span [ onClick ( ToggleCase k ) ] [ text ( applyDisplayMode v ) ]
+               , button [ onClick ( EditItem k ) ] [ text "edit" ]
+               , deleteButton
+               ]
+            else
+            form [onSubmit StopEdit] [
+              input [ value v.item, onInput ( UpdateItem k v ) ] []
+              , button [] [ text "save" ]
+              , deleteButton
+            ]
+          ]
       , item = v.item
       , length = v.length }
   in
