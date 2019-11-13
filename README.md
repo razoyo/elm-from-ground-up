@@ -4,6 +4,9 @@ Welcome to Razoyo's Elm learning lab. The approach of this lab is to start with 
 
 The idea is that you can start playing with a limited set of features and gradually add more data types and functionality as you progress.
 
+## Lab 12 - Edit Item
+This completes out the use of the Dict data type as part of the model and some basic refactoring.
+
 ## How to use the lab
 
 The lab is organized in numbered, step-wise versions. We recommend cloning the repository onto your development environment and check out each numbered branch successively.
