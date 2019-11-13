@@ -135,7 +135,7 @@ addNewItem model =
   { model | items = Dict.insert ( newKey items ) ( Item newItem Original False ( String.length newItem ) ) items
   , newItem = ""
   }
-
+  
 
 -- VIEW
 view : Model -> Html Msg
