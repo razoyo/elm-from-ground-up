@@ -123,7 +123,8 @@ update msg model =
       { model | items = Dict.insert key { item | item = newItem } model.items }
 
     StopEdit ->
-      { model | items = Dict.map (\k v -> Item v.item v.displayStatus False v.length ) model.items }
+      -- { model | items = Dict.map (\k v -> Item v.item v.displayStatus False v.length ) model.items }
+      { model | items = Dict.map (\k v -> { v | editing = False } ) model.items }
 
 addNewItem : Model -> Model
 addNewItem model =

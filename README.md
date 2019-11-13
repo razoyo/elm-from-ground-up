@@ -4,9 +4,8 @@ Welcome to Razoyo's Elm learning lab. The approach of this lab is to start with 
 
 The idea is that you can start playing with a limited set of features and gradually add more data types and functionality as you progress.
 
-## Lab 11 - Using Dict
-We're just scratching the surface here with the Dict data type, but, you'll see that it allows us to do some things that are very handy including using the key to add, remove, or update values, among others. There are a lot of reasons why dict is handy, but, you have to treat it differently. It does have some of the same methods as list like map, but, it's purpose is different.
-
+## Lab 12 - Edit Item
+This completes out the use of the Dict data type as part of the model and some basic refactoring.
 
 ## How to use the lab
 
