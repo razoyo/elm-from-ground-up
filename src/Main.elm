@@ -18,7 +18,7 @@ initialModel =
 
 
 init : Model
-init = 
+init =
   initialModel
 
 
@@ -66,12 +66,9 @@ update msg model =
         itemListSorted = List.sort model.items
 
         itemListSortedByLength =
-          model.items
-            |> List.map (\x -> ( String.length x, x ) )
-            |> List.sort
-            |> List.map (\x -> Tuple.second x)
+          List.sortBy String.length model.items
 
-        newList = 
+        newList =
           case operation of
             Asc ->
               itemListSorted
@@ -96,7 +93,7 @@ addNewItem model =
 
 capitalizeMatchedItems : String -> String -> String
 capitalizeMatchedItems choice match =
-  if choice == match then 
+  if choice == match then
     String.toUpper choice
   else
     choice
@@ -106,22 +103,22 @@ capitalizeMatchedItems choice match =
 view : Model -> Html Msg
 view model =
   div [] [ div [] [ span [] [ text "sort operation : " ]
-         , button [ onClick ( Sort Asc ) ] [ text "a - z" ] 
-         , button [ onClick ( Sort Desc ) ] [ text "z - a" ] 
-         , button [ onClick ( Sort AscLength ) ] [ text "short - long" ] 
-         , button [ onClick ( Sort DescLength ) ] [ text "long - short" ] 
+         , button [ onClick ( Sort Asc ) ] [ text "a - z" ]
+         , button [ onClick ( Sort Desc ) ] [ text "z - a" ]
+         , button [ onClick ( Sort AscLength ) ] [ text "short - long" ]
+         , button [ onClick ( Sort DescLength ) ] [ text "long - short" ]
          ]
-    , div [] ( List.map 
+    , div [] ( List.map
              (\x -> p [] [ span [ onClick ( Capitalize x ) ] [ text x ]
                          , span [ style "margin-left" "10px"
                                 , style "color" "red"
                                 , style "font-family" "sans-serif"
-                                , onClick ( Delete x ) ] [ text "x" ] 
+                                , onClick ( Delete x ) ] [ text "x" ]
                          ]
              ) model.items
            )
            , form [ onSubmit AddNew ] [ input [ value model.newItem, onInput UpdateNew ] []
                   , button [ style "margin-left" "10px" ] [ text "submit" ]
-                  ] 
+                  ]
     , button [ onClick Reset ] [ text "reset" ]
   ]
