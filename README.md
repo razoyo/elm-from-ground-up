@@ -4,9 +4,13 @@ Welcome to Razoyo's Elm learning lab. The approach of this lab is to start with 
 
 The idea is that you can start playing with a limited set of features and gradually add more data types and functionality as you progress.
 
-## Lab 11 - Using Dict
-We're just scratching the surface here with the Dict data type, but, you'll see that it allows us to do some things that are very handy including using the key to add, remove, or update values, among others. There are a lot of reasons why dict is handy, but, you have to treat it differently. It does have some of the same methods as list like map, but, it's purpose is different.
+## Lab 13 - Elm UI
 
+In some ways this is a major refactoring of the codebase. Now that the application is growing (though small by any standard) I'm going to create a new module to manage styling. If I were writing an application, I would probably keep this in the main file because it's just as easy to read... maybe easier than in Lab 12. However, I wanted to show how to use modules.
+
+Additionally, we're going to replace our view HTML, html events and styles with [Elm-ui by mdgriffith](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/). 
+
+To get this to work on your machine, you'll need to have Elm-ui installed. Just got to the project root and run `elm install mdgriffith/elm-ui` and you should be good to go. If you don't have it installed in your Elm library globally, you'll probably get an error.
 
 ## How to use the lab
 

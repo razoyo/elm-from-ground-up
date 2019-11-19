@@ -1,8 +1,38 @@
 import Browser
-import Html exposing ( Html, text, p, button, div, input, span, form, h1 )
-import Html.Events exposing ( onClick, onInput, onSubmit )
-import Html.Attributes exposing ( value, style )
+
+import Element exposing (Element
+  , el
+  , text
+  , row
+  , column
+  , alignRight
+  , alignTop
+  , fill
+  , layout
+  , none
+  , width
+  , rgb255
+  , spacing
+  , centerX
+  , centerY
+  , padding)
+
+import Element.Background as Background
+import Element.Border as Border
+import Element.Events exposing ( onClick )
+import Element.Font as Font
+import Element.Input as Input
+
+import Html
+
 import Dict
+
+import Styles exposing ( heading1
+  , actionX
+  , red
+  , sortButton
+  , standardButton )
+
 
 
 main =
@@ -137,22 +167,27 @@ addNewItem model =
 
 
 -- VIEW
-view : Model -> Html Msg
+view : Model -> Html.Html Msg
 view model =
-  div [] [ h1 [] [ text ( headList model.items ) ] 
-         , div [] [ span [] [ text "sort operation : " ]
-           , button [ onClick ( Sort Order ) ] [ text "order" ] 
-           , button [ onClick ( Sort Asc ) ] [ text "a - z" ] 
-           , button [ onClick ( Sort Desc ) ] [ text "z - a" ] 
-           , button [ onClick ( Sort AscLength ) ] [ text "short - long" ] 
-           , button [ onClick ( Sort DescLength ) ] [ text "long - short" ] 
+  layout [ width fill, padding 10 ]
+    <|
+      column [ width fill, alignTop, padding 10, spacing 10 ] [ el heading1 ( text ( headList model.items ) ) 
+         , row [width fill, spacing 10] [ el [ ] ( text "sort operation : " )
+           , Input.button sortButton { onPress = Just ( Sort Order ), label = text "order" }
+           , Input.button sortButton { onPress = Just ( Sort Asc ), label = text "a - z" }
+           , Input.button sortButton { onPress = Just ( Sort Desc ), label = text "z - a" }
+           , Input.button sortButton { onPress = Just ( Sort AscLength ), label = text "short - long" }
+           , Input.button sortButton { onPress = Just ( Sort DescLength ), label = text "long - short" }
            ]
-         , div [] ( sortedList model.items model.sortBy )
-           , form [ onSubmit AddNew ] [ input [ value model.newItem, onInput UpdateNew ] []
-                  , button [ style "margin-left" "10px" ] [ text "submit" ]
-                  ] 
-    , button [ onClick Reset ] [ text "reset" ]
-  ]
+         , column [ spacing 15, padding 20 ] ( sortedList model.items model.sortBy )
+         , row [ spacing 10 ] [ Input.text [] { text = model.newItem
+                        , placeholder = Nothing
+                        , onChange = UpdateNew
+                        , label = Input.labelLeft [ centerY ] (text "Add item : ") }
+                  , Input.button standardButton { onPress = Just AddNew, label = text "submit" }
+                  ]
+         , row [] [ Input.button standardButton { onPress = Just Reset, label = text "reset" } ]
+      ]
 
 
 headList : Dict.Dict Int Item -> String
@@ -175,7 +210,7 @@ headList items =
       "Empty List"
 
 
-sortedList : Dict.Dict Int Item -> SortOperation -> List ( Html Msg )
+sortedList : Dict.Dict Int Item -> SortOperation -> List ( Element Msg )
 sortedList items sortBy =
 
   let
@@ -187,26 +222,27 @@ sortedList items sortBy =
     itemElement k v =
       let
         deleteButton =
-          span [ style "margin-left" "10px"
-               , style "color" "red"
-               , style "font-family" "sans-serif"
-               , onClick ( Delete k ) 
-             ] [ text "x" ] 
-      in
-      { element = 
-          div [] [ if v.editing == False then
-            div [] [
-               span [ onClick ( ToggleCase k ) ] [ text ( applyDisplayMode v ) ]
-               , button [ onClick ( EditItem k ) ] [ text "edit" ]
+          el ( ( onClick ( Delete k ) ) :: actionX )  ( text "x" ) 
+
+        displayItem =
+          if v.editing == False then
+            row [ spacing 20 ] [
+               el [ onClick ( ToggleCase k ) ] ( text ( applyDisplayMode v ) )
+               , Input.button standardButton { onPress = Just ( EditItem k ), label =  text "edit"  }
                , deleteButton
-               ]
-            else
-            form [onSubmit StopEdit] [
-              input [ value v.item, onInput ( UpdateItem k v ) ] []
-              , button [] [ text "save" ]
+            ]
+          else
+            row [ spacing 20 ] [ Input.text [] { onChange = UpdateItem k v 
+                                  , text = v.item
+                                  , placeholder = Nothing
+                                  , label = Input.labelLeft []  none }
+              , Input.button standardButton { onPress = Just StopEdit, label =  text "save" }
               , deleteButton
             ]
-          ]
+
+      in
+
+      { element = displayItem
       , item = v.item
       , length = v.length }
   in
