@@ -4,13 +4,15 @@ Welcome to Razoyo's Elm learning lab. The approach of this lab is to start with 
 
 The idea is that you can start playing with a limited set of features and gradually add more data types and functionality as you progress.
 
-## Lab 13 - Elm UI
+## Lab 14 - Handling Enter
 
-In some ways this is a major refactoring of the codebase. Now that the application is growing (though small by any standard) I'm going to create a new module to manage styling. If I were writing an application, I would probably keep this in the main file because it's just as easy to read... maybe easier than in Lab 12. However, I wanted to show how to use modules.
+Because elm-ui doesn't have a form element, we need to handle the event of an enter key being pressed. We do this in two basic steps:
+1 - Add a function that creates and enter key event 
+2 - Add handle the enter event function in our text input elements
 
-Additionally, we're going to replace our view HTML, html events and styles with [Elm-ui by mdgriffith](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/). 
+In addition, the enter key event function uses the decoder, so, we import the decoder and the HTML events to accommodate that.
 
-To get this to work on your machine, you'll need to have Elm-ui installed. Just got to the project root and run `elm install mdgriffith/elm-ui` and you should be good to go. If you don't have it installed in your Elm library globally, you'll probably get an error.
+To get this to work on your machine, you'll need to have Elm JSON installed. Just got to the project root and run `elm install elm/json` and you should be good to go. If you don't have it installed in your Elm library globally, you'll probably get an error.
 
 ## How to use the lab
 

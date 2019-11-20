@@ -24,6 +24,9 @@ import Element.Font as Font
 import Element.Input as Input
 
 import Html
+import Html.Events
+
+import Json.Decode as Decode
 
 import Dict
 
@@ -180,7 +183,7 @@ view model =
            , Input.button sortButton { onPress = Just ( Sort DescLength ), label = text "long - short" }
            ]
          , column [ spacing 15, padding 20 ] ( sortedList model.items model.sortBy )
-         , row [ spacing 10 ] [ Input.text [] { text = model.newItem
+         , row [ spacing 10 ] [ Input.text [ onEnter AddNew ] { text = model.newItem
                         , placeholder = Nothing
                         , onChange = UpdateNew
                         , label = Input.labelLeft [ centerY ] (text "Add item : ") }
@@ -232,7 +235,7 @@ sortedList items sortBy =
                , deleteButton
             ]
           else
-            row [ spacing 20 ] [ Input.text [] { onChange = UpdateItem k v 
+            row [ spacing 20 ] [ Input.text [ onEnter StopEdit ] { onChange = UpdateItem k v 
                                   , text = v.item
                                   , placeholder = Nothing
                                   , label = Input.labelLeft []  none }
@@ -283,3 +286,20 @@ applyDisplayMode item =
 
     _ ->
       item.item
+
+
+onEnter : msg -> Element.Attribute msg
+onEnter msg =
+    Element.htmlAttribute
+        (Html.Events.on "keyup"
+            (Decode.field "key" Decode.string
+                |> Decode.andThen
+                    (\key ->
+                        if key == "Enter" then
+                            Decode.succeed msg
+
+                        else
+                            Decode.fail "Not the enter key"
+                    )
+            )
+        )
