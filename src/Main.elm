@@ -15,7 +15,10 @@ import Element exposing (Element
   , spacing
   , centerX
   , centerY
-  , padding)
+  , padding
+  , mouseOver
+  , pointer)
+
 
 import Element.Background as Background
 import Element.Border as Border
@@ -198,18 +201,18 @@ headList items =
   let
     item = items
            |> Dict.toList
-           |> List.head -- this will produce a Maybe condition since a list may be empty
+           |> List.head 
   in
 
   case item of 
-    Just data -> -- if the list is not empty
+    Just data ->
       let
         ( k , v ) = data
         firstItem = v.item
       in
       "List starting with \"" ++ firstItem ++ "\""
 
-    Nothing -> -- if the list is empty
+    Nothing ->
       "Empty List"
 
 
@@ -225,7 +228,7 @@ sortedList items sortBy =
     itemElement k v =
       let
         deleteButton =
-          el ( ( onClick ( Delete k ) ) :: actionX )  ( text "x" ) 
+          el ( [ onClick ( Delete k ), pointer ] ++ actionX ) ( text "x" ) 
 
         displayItem =
           if v.editing == False then
