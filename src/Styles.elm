@@ -30,7 +30,7 @@ actionX = [ Font.color red
   , Font.size 14 ]
 
 sortButton =
-  [ padding 8
+  [ padding 6
   , Border.width 3
   , Border.color red ]
 

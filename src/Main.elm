@@ -232,8 +232,8 @@ sortedList items sortBy =
 
         displayItem =
           if v.editing == False then
-            row [ spacing 20 ] [
-               el [ onClick ( ToggleCase k ) ] ( text ( applyDisplayMode v ) )
+            row [ spacing 20 ] [ el [] ( text ( String.fromInt k ) )
+               , el [ onClick ( ToggleCase k ) ] ( text ( applyDisplayMode v ) )
                , Input.button standardButton { onPress = Just ( EditItem k ), label =  text "edit"  }
                , deleteButton
             ]
