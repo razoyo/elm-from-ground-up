@@ -4,15 +4,21 @@ Welcome to Razoyo's Elm learning lab. The approach of this lab is to start with 
 
 The idea is that you can start playing with a limited set of features and gradually add more data types and functionality as you progress.
 
-## Lab 14 - Handling Enter
+## Lab 15 - Getting Data from the Outside World
 
-Because elm-ui doesn't have a form element, we need to handle the event of an enter key being pressed. We do this in two basic steps:
-1 - Add a function that creates and enter key event 
-2 - Add handle the enter event function in our text input elements
+While managing a list in our browser is fun and all, it's time to take things to the next level. Rather than manually entering in our data, we're going to pull it from Github.
 
-In addition, the enter key event function uses the decoder, so, we import the decoder and the HTML events to accommodate that.
+Starting with razoyo as the Github id, we'll request the data from the API. It's going to come back as JSON data which we will need to decode. We're going to expand on the JSON decoder which we used (to decode an Enter key event) in our last repo and use it to read the incoming data. More info on the API we are using is available at [github|https://developer.github.com/v3/].
 
-To get this to work on your machine, you'll need to have Elm JSON installed. Just got to the project root and run `elm install elm/json` and you should be good to go. If you don't have it installed in your Elm library globally, you'll probably get an error.
+Github returns a lot of data, but, we're only interested in a few fields: id, name and description. We'll update our "Item" type to include those fields and we'll get rid of length and get rid of that sort.
+
+To do all this, you'll notice a few changes:
+* We will have to change from Browser.sandbox to Browser.
+* With that change we now have to change our update to update not only the model, but, to subscribe to http events - this will allow us pull in the data from GitHub.
+* The incoming data is in JSON format so you'll see us parsing and decoding here and there.
+
+If you have worked through the [Elm intro|https://guide.elm-lang.org/] the above may make sense to you. Even if you have but feel uncomfortable with some of the concepts, I encourage you to review the relevant sections of the guide --- I did before writing the code here!
+
 
 ## How to use the lab
 

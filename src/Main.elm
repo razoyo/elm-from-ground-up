@@ -29,7 +29,9 @@ import Element.Input as Input
 import Html
 import Html.Events
 
-import Json.Decode as Decode
+import Http
+
+import Json.Decode as Decode exposing (Decoder, field, int, string, list, map3)
 
 import Dict
 
@@ -39,81 +41,96 @@ import Styles exposing ( heading1
   , sortButton
   , standardButton )
 
+-- import CommOps exposing ( Item, DisplayStatus, repoDecoder )
+
 
 
 main =
-  Browser.sandbox
+  Browser.element
     { init = init
     , update = update
+    , subscriptions = subscriptions
     , view = view
     }
 
 
 initialModel =
-  { items = Dict.fromList [ ( 1, Item "Hello World" Original False 11 )
-                          , ( 2, Item "Here I Am" Original False 9 ) 
-                          ]
+  { items = Dict.empty 
   , newItem = ""
   , sortBy = Order
   }
 
 
-emptyItem =
-  Item "N/A" Original False 0
+init : () -> ( Model, Cmd Msg )
+init _ =
+  ( initialModel
+  , Http.get 
+    { url = "https://api.github.com/users/razoyo/repos"
+    , expect =  Http.expectJson LoadRepos reposDecoder } 
+  )
 
+getRepos : Cmd Msg
+getRepos =
+  Http.get 
+    { url = "https://api.github.com/users/razoyo/repos"
+    , expect =  Http.expectJson LoadRepos reposDecoder } 
 
-newKey : Dict.Dict Int Item -> Int
-newKey items =
-  Dict.keys items 
-  |> List.maximum 
-  |> Maybe.withDefault 0 
-  |> (\x -> x + 1)
+-- SUBSCRIPTIONS
 
-
-init : Model
-init =
-  initialModel
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
 
 
 
 -- MODEL
 type alias Model =
-  { items : Dict.Dict Int Item
+  { items : Dict.Dict String Item
   , newItem : String
   , sortBy : SortOperation
   }
 
 
-type Msg = ToggleCase Int
+type Msg = ToggleCase String
   | Reset
   | UpdateNew String
   | AddNew
-  | Delete Int
+  | Delete String
   | Sort SortOperation
-  | EditItem Int
-  | UpdateItem Int Item String
+  | EditItem String
+  | UpdateItem String Item String
   | StopEdit
+  | LoadRepos ( Result Http.Error ( List PreItem ) )
 
 
-type SortOperation = Order | Asc | Desc | AscLength | DescLength
-
-
-type DisplayStatus = Original | Capitalized
-
-
-type alias Item = 
-  { item : String
-  , displayStatus : DisplayStatus
-  , editing : Bool
-  , length : Int
-  }
+type SortOperation = Order | Asc | Desc
 
 
 
 -- UPDATE
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
+
+    LoadRepos result ->
+      let
+        repos = 
+           case result of
+             Err _ ->
+               Dict.empty
+
+             Ok repoList ->
+               let
+                 item preItem =
+                   ( String.fromInt preItem.id
+                   , Item preItem.item Original False preItem.description )
+ 
+                 items = List.map (\x -> ( item x ) ) repoList
+                                
+               in
+               Dict.fromList items
+      in
+      ( { model | items = repos }, Cmd.none )
 
     ToggleCase key ->
       let
@@ -124,25 +141,25 @@ update msg model =
 
         updatedItem = Dict.get key model.items
                       |> Maybe.withDefault emptyItem
-                      |> (\x -> Item x.item (newStatus x.displayStatus) x.editing x.length)
+                      |> ( \x -> Item x.item (newStatus x.displayStatus) x.editing x.description )
       in
 
-      { model | items = Dict.insert key updatedItem model.items }
+      ( { model | items = Dict.insert key updatedItem model.items }, Cmd.none )
 
     Reset ->
-      initialModel
+      ( initialModel, getRepos )
 
     UpdateNew item ->
-      { model | newItem = item }
+      ( { model | newItem = item }, Cmd.none )
 
     AddNew ->
-      addNewItem model
+      ( addNewItem model, Cmd.none )
 
     Delete item ->
-      { model | items = ( Dict.remove item model.items ) }
+      ( { model | items = ( Dict.remove item model.items ) }, Cmd.none )
 
     Sort operation ->
-      { model | sortBy = operation }
+      ( { model | sortBy = operation }, Cmd.none )
 
     EditItem key ->
       let
@@ -150,26 +167,31 @@ update msg model =
 
         updatedItem = Dict.get key model.items
                       |> Maybe.withDefault emptyItem
-                      |> (\x -> Item x.item x.displayStatus (not x.editing) x.length)
+                      |> (\x -> Item x.item x.displayStatus (not x.editing) x.description )
       in
 
-      { model | items = Dict.insert key updatedItem (resetItems model.items) }
+      ( { model | items = Dict.insert key updatedItem (resetItems model.items) }, Cmd.none )
 
     UpdateItem key item newItem ->
-      { model | items = Dict.insert key { item | item = newItem } model.items }
+      ( { model | items = Dict.insert key { item | item = newItem } model.items }, Cmd.none )
 
     StopEdit ->
-      { model | items = Dict.map (\k v -> Item v.item v.displayStatus False v.length ) model.items }
+      ( { model | items = Dict.map (\k v -> Item v.item v.displayStatus False v.description ) model.items }, Cmd.none )
+
 
 addNewItem : Model -> Model
 addNewItem model =
+
   let
     newItem = model.newItem
     items = model.items
+    newKey = ( String.slice 0 3 newItem ) ++ ( String.fromInt ( String.length newItem ) )
   in
-  { model | items = Dict.insert ( newKey items ) ( Item newItem Original False ( String.length newItem ) ) items
+
+  { model | items = Dict.insert newKey ( Item newItem Original False "" ) items
   , newItem = ""
   }
+
 
 
 -- VIEW
@@ -182,8 +204,6 @@ view model =
            , Input.button sortButton { onPress = Just ( Sort Order ), label = text "order" }
            , Input.button sortButton { onPress = Just ( Sort Asc ), label = text "a - z" }
            , Input.button sortButton { onPress = Just ( Sort Desc ), label = text "z - a" }
-           , Input.button sortButton { onPress = Just ( Sort AscLength ), label = text "short - long" }
-           , Input.button sortButton { onPress = Just ( Sort DescLength ), label = text "long - short" }
            ]
          , column [ spacing 15, padding 20 ] ( sortedList model.items model.sortBy )
          , row [ spacing 10 ] [ Input.text [ onEnter AddNew ] { text = model.newItem
@@ -196,7 +216,7 @@ view model =
       ]
 
 
-headList : Dict.Dict Int Item -> String
+headList : Dict.Dict String Item -> String
 headList items =
   let
     item = items
@@ -216,7 +236,7 @@ headList items =
       "Empty List"
 
 
-sortedList : Dict.Dict Int Item -> SortOperation -> List ( Element Msg )
+sortedList : Dict.Dict String Item -> SortOperation -> List ( Element Msg )
 sortedList items sortBy =
 
   let
@@ -232,7 +252,7 @@ sortedList items sortBy =
 
         displayItem =
           if v.editing == False then
-            row [ spacing 20 ] [ el [] ( text ( String.fromInt k ) )
+            row [ spacing 20 ] [ el [] ( text k )
                , el [ onClick ( ToggleCase k ) ] ( text ( applyDisplayMode v ) )
                , Input.button standardButton { onPress = Just ( EditItem k ), label =  text "edit"  }
                , deleteButton
@@ -249,8 +269,7 @@ sortedList items sortBy =
       in
 
       { element = displayItem
-      , item = v.item
-      , length = v.length }
+      , item = v.item }
   in
 
   case sortBy of
@@ -269,21 +288,14 @@ sortedList items sortBy =
       |> List.map .element
       |> List.reverse
 
-    AscLength ->
-      itemList
-      |> List.sortBy .length
-      |> List.map .element
-
-    DescLength ->
-      itemList
-      |> List.sortBy .length
-      |> List.map .element
-      |> List.reverse
-
 
 applyDisplayMode : Item -> String
 applyDisplayMode item =
-  case item.displayStatus of
+  let
+    displayStatus = item.displayStatus
+  in
+
+  case displayStatus of
     Capitalized ->
       String.toUpper item.item
 
@@ -306,3 +318,39 @@ onEnter msg =
                     )
             )
         )
+
+--- Module check
+
+
+type DisplayStatus = Original | Capitalized
+
+
+type alias Item = 
+  { item : String -- we'll use the name field from Github's JSON response
+  , displayStatus : DisplayStatus
+  , editing : Bool
+  , description : String
+  }
+
+
+emptyItem =
+  Item "" Original False "" 
+
+
+type alias PreItem =
+  { id : Int
+  , item : String -- we'll use the name field from Github's JSON response
+  , description : String
+  }
+
+
+reposDecoder : Decoder (List PreItem)
+reposDecoder =
+  ( list repoDecoder )
+
+repoDecoder : Decoder PreItem
+repoDecoder =
+  map3 PreItem
+    (field "id" int)
+    (field "name" string)
+    (field "full_name" string)
