@@ -2,7 +2,7 @@ module Main exposing (Model, Msg(..), Position(..), init, initialModel, main, up
 
 import Browser
 import Html exposing (Html, button, div, input, p, text)
-import Html.Attributes exposing (value)
+import Html.Attributes exposing (style, value)
 import Html.Events exposing (onClick, onInput)
 
 
@@ -78,9 +78,9 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ p [ onClick (Capitalize First) ] [ text model.first ]
-        , p [ onClick (Capitalize Second) ] [ text model.second ]
-        , p [ onClick (Capitalize Third) ] [ text model.third ]
-        , p [] [ input [ value model.third, onInput AddNew ] [] ]
-        , button [ onClick Reset ] [ text "undo" ]
+        [ p [ style "margin" "20px", onClick (Capitalize First) ] [ text model.first ]
+        , p [ style "margin" "20px", onClick (Capitalize Second) ] [ text model.second ]
+        , p [ style "margin" "20px", onClick (Capitalize Third) ] [ text model.third ]
+        , p [ style "margin" "20px" ] [ input [ value model.third, onInput AddNew ] [] ]
+        , button [ style "margin" "20px", onClick Reset ] [ text "Reset" ]
         ]
